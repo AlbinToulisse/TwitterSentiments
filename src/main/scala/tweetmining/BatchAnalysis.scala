@@ -25,8 +25,16 @@ object BatchAnalysis {
     tweetsHashtag.take(5).foreach(println)
     println("\n")
     
-    //val tweetsHashtagAverage: RDD[(String, Double)] = tweetsOnlyHashtag.reduceByKey((x, y) => x + y)
-    //val tweetsHashtagCount: RDD[(String, Integer)] = 
+    val tweetsHashtagSet: RDD[(String, Set[Double])] = tweetsHashtag.combineByKey(x => Set(x),
+        (s: Set[Double], x: Double) => s + x,
+        (s1: Set[Double], s2: Set[Double]) => s1 ++ s2)
+    val tweetsHashtagAverage: RDD[(String, Double)] = tweetsHashtagSet.map(x => (x._1, (x._2.sum)/x._2.size))
+    println("Most positive Hashtag: ")
+    val tweetsHashtagSwap: RDD[(Double, String)] = tweetsHashtagAverage.map(_.swap)
+    tweetsHashtagSwap.top(5).foreach(println)
+    println("Most negative Hashtag: ")
+    tweetsHashtagSwap.takeOrdered(5).foreach(println)
+    println("\n")
     
     
   }
