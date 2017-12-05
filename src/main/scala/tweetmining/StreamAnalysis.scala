@@ -34,8 +34,14 @@ object StreamAnalysis {
       PreferConsistent,
       Subscribe[String, String](topics, kafkaParams))
 
-    //add your code here
+    val tweets = tweetStream.map(_.value)
 
+    tweets.map(_.toLowerCase()).filter(_.contains("trump")).count().print()
+
+    val sentiments = tweets.map(text => (text, TweetUtilities.getSentiment(text)))
+    sentiments.flatMap(pair => TweetUtilities.getHashTags(pair._1).map((_, pair._2))).reduceByKey(_ + _).map(_.swap).foreachRDD(_.foreach(println))
+    
+    
     streamingContext.start()
     streamingContext.awaitTermination()
   }
